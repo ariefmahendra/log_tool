@@ -16,7 +16,7 @@ func ProcessLog(log []byte) ([]string, error) {
 	for _, line := range lines {
 		if capturing {
 			if bytes.HasPrefix([]byte(line), []byte("ERROR")) || bytes.HasPrefix([]byte(line), []byte("DEBUG")) {
-				currentLog += "🚀 TIME : " + strings.Split(line, " ")[1] + " " + strings.Split(line, " ")[2] + "\n"
+				currentLog += "🕒 TIME : " + strings.Split(line, " ")[1] + " " + strings.Split(line, " ")[2] + " 🕒\n"
 				filteredLogs = append(filteredLogs, currentLog)
 				currentLog = ""
 				capturing = false
@@ -39,34 +39,48 @@ func ProcessLog(log []byte) ([]string, error) {
 func ExtractJson(log string) (string, string) {
 	var payloadBuilder strings.Builder
 	var payloadInfoBuilder strings.Builder
+	var payloadInfoTimeBuilder strings.Builder
+
 	isJson := false
+	isTime := false
 
 	for _, char := range log {
 		if char == '{' {
 			isJson = true
 		}
 
-		if char == '🚀' {
+		if char == '🕒' {
 			payloadInfoBuilder.WriteString("\n")
 			isJson = false
+			isTime = true
 		}
 
 		if isJson {
 			payloadBuilder.WriteRune(char)
-		} else {
+		} else if !isTime {
 			payloadInfoBuilder.WriteRune(char)
+		} else {
+			payloadInfoTimeBuilder.WriteRune(char)
 		}
 
 	}
 
 	jsonString := payloadBuilder.String()
-	payloadInfoString := payloadInfoBuilder.String()
+	PayloadInfoString := payloadInfoTimeBuilder.String() + payloadInfoBuilder.String()
 
+	var payloadInfoTrim string
+	if strings.HasSuffix(PayloadInfoString, "\n\n") {
+		payloadInfoTrim = strings.TrimSuffix(PayloadInfoString, "\n\n")
+	}
+
+	if strings.HasSuffix(PayloadInfoString, "\n\n\n") {
+		payloadInfoTrim = strings.TrimSuffix(PayloadInfoString, "\n\n\n")
+	}
 	var prettyJson bytes.Buffer
 	err := json.Indent(&prettyJson, []byte(jsonString), "", "  ")
 	if err != nil {
-		return payloadInfoString, jsonString
+		return PayloadInfoString, jsonString
 	}
 
-	return payloadInfoString, prettyJson.String()
+	return payloadInfoTrim, prettyJson.String()
 }

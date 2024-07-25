@@ -243,7 +243,7 @@ func (l *logControllerImpl) SearchLog(dir, keyword string) error {
 			if strings.Contains(strings.ToLower(strLog), strings.ToLower(keyword)) {
 				fmt.Println("====================================================================================")
 				payloadInfo, payload := util.ExtractJson(strLog)
-				fmt.Print(payloadInfo)
+				fmt.Println(payloadInfo)
 				fmt.Println(payload)
 			}
 		}
