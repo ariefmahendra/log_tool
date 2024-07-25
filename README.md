@@ -6,6 +6,8 @@ This Tools is used to read log file on server, download log file, filter log fil
 ### Prerequisite
 - Go 1.16 or higher
 - Git
+- ENV must be set in the .env file
+```text
 ### Step
 ```bash
 git clone https://github.com/ariefmahendra/log_tool.git
