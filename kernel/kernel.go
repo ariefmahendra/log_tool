@@ -3,6 +3,7 @@ package kernel
 import (
 	"Tools/config"
 	"Tools/controller"
+	"Tools/service"
 	"Tools/util"
 	"bufio"
 	"fmt"
@@ -24,7 +25,8 @@ func StartUp() {
 		log.Fatal(err)
 	}
 
-	logging := controller.NewLogController(cfg)
+	logService := service.NewLogService(cfg)
+	logging := controller.NewLogController(cfg, logService)
 
 	util.ShowMenu()
 	scanner := bufio.NewScanner(os.Stdin)
