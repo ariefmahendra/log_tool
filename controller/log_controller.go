@@ -32,6 +32,7 @@ func (l *logControllerImpl) PrintLatestLog(dir string, bufferSize int) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("mencoba membaca latest log")
 	fmt.Println(log)
 	return nil
 }

@@ -58,28 +58,31 @@ func (l *LogServiceImpl) SearchLog(dir, keyword string) error {
 	}
 
 	start := stat.Size() - size
-	_, err = file.ReadAt(logBuffer, start)
-	if err == nil {
-		log, err := l.ProcessLog(logBuffer)
+	if start < size {
+		_, err = file.Read(logBuffer)
+	} else {
+		_, err = file.ReadAt(logBuffer, start)
 		if err != nil {
-			return err
+			return errors.New("file read error")
 		}
-
-		if len(log) == 0 {
-			fmt.Println("No log found")
-		}
-
-		for _, strLog := range log {
-			if strings.Contains(strings.ToLower(strLog), strings.ToLower(keyword)) {
-				fmt.Println("====================================================================================")
-				payloadInfo, payload := l.ExtractJson(strLog)
-				fmt.Println(payloadInfo)
-				fmt.Println(payload)
-			}
-		}
-
+	}
+	log, err := l.ProcessLog(logBuffer)
+	if err != nil {
+		return err
 	}
 
+	if len(log) == 0 {
+		fmt.Println("No log found")
+	}
+
+	for _, strLog := range log {
+		if strings.Contains(strings.ToLower(strLog), strings.ToLower(keyword)) {
+			fmt.Println("====================================================================================")
+			payloadInfo, payload := l.ExtractJson(strLog)
+			fmt.Println(payloadInfo)
+			fmt.Println(payload)
+		}
+	}
 	return nil
 }
 
@@ -242,9 +245,13 @@ func (l *LogServiceImpl) PrintLatestLog(dir string, bufferSize int) (string, err
 	}
 
 	start := stat.Size() - size
-	_, err = file.ReadAt(logBuffer, start)
-	if err != nil {
-		return "", errors.New("file read error")
+	if start < size {
+		_, err = file.Read(logBuffer)
+	} else {
+		_, err = file.ReadAt(logBuffer, start)
+		if err != nil {
+			return "", errors.New("file read error")
+		}
 	}
 
 	return string(logBuffer), nil
