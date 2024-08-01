@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"strconv"
@@ -58,15 +59,22 @@ func (l *LogServiceImpl) SearchLog(dir, keyword string) error {
 	}
 
 	start := stat.Size() - size
-	if start < size {
-		_, err = file.Read(logBuffer)
-	} else {
-		_, err = file.ReadAt(logBuffer, start)
-		if err != nil {
-			return errors.New("file read error")
-		}
+	if start < 0 {
+		start = 0
 	}
-	log, err := l.ProcessLog(logBuffer)
+
+	var bytesRead int
+	if start == 0 {
+		bytesRead, err = file.Read(logBuffer)
+	} else {
+		bytesRead, err = file.ReadAt(logBuffer, start)
+	}
+
+	if err != nil && err != io.EOF {
+		return errors.New("file read error")
+	}
+
+	log, err := l.ProcessLog(logBuffer[:bytesRead])
 	if err != nil {
 		return err
 	}
@@ -245,16 +253,21 @@ func (l *LogServiceImpl) PrintLatestLog(dir string, bufferSize int) (string, err
 	}
 
 	start := stat.Size() - size
-	if start < size {
-		_, err = file.Read(logBuffer)
-	} else {
-		_, err = file.ReadAt(logBuffer, start)
-		if err != nil {
-			return "", errors.New("file read error")
-		}
+	if start < 0 {
+		start = 0
 	}
 
-	return string(logBuffer), nil
+	var bytesRead int
+	if start == 0 {
+		bytesRead, err = file.Read(logBuffer)
+	} else {
+		bytesRead, err = file.ReadAt(logBuffer, start)
+	}
+	if err != nil && err != io.EOF {
+		return "", errors.New("file read error")
+	}
+
+	return string(logBuffer[:bytesRead]), nil
 }
 
 func (l *LogServiceImpl) CheckENV() map[string]string {
