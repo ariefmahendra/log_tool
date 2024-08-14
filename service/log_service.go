@@ -306,7 +306,6 @@ func (l *LogServiceImpl) ProcessLog(log []byte) ([]string, error) {
 	if len(filteredLogs) == 0 {
 		return nil, fmt.Errorf("no logs captured")
 	}
-
 	return filteredLogs, nil
 }
 
