@@ -317,39 +317,38 @@ func (l *LogServiceImpl) ExtractJson(log string) (string, string) {
 
 	isJson := false
 	isTime := false
+	isXml := false
 
 	for _, char := range log {
 		if char == '{' {
 			isJson = true
 		}
 
-		if char == '🕒' {
-			payloadInfoBuilder.WriteString("\n")
+		if char == '<' {
+			isXml = true
 			isJson = false
+		}
+
+		if char == '🕒' {
+			isJson = false
+			isXml = false
 			isTime = true
 		}
 
 		if isJson {
+			payloadBuilder.WriteRune(char)
+		} else if isXml {
 			payloadBuilder.WriteRune(char)
 		} else if !isTime {
 			payloadInfoBuilder.WriteRune(char)
 		} else {
 			payloadInfoTimeBuilder.WriteRune(char)
 		}
-
 	}
 
 	jsonString := payloadBuilder.String()
 	PayloadInfoString := payloadInfoTimeBuilder.String() + payloadInfoBuilder.String()
-
-	var payloadInfoTrim string
-	if strings.HasSuffix(PayloadInfoString, "\n\n") {
-		payloadInfoTrim = strings.TrimSuffix(PayloadInfoString, "\n\n")
-	}
-
-	if strings.HasSuffix(PayloadInfoString, "\n\n\n") {
-		payloadInfoTrim = strings.TrimSuffix(PayloadInfoString, "\n\n\n")
-	}
+	payloadInfoTrim := strings.TrimSpace(PayloadInfoString)
 	var prettyJson bytes.Buffer
 	err := json.Indent(&prettyJson, []byte(jsonString), "", "  ")
 	if err != nil {
